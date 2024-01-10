@@ -7,11 +7,8 @@ const PORT = 3000;
 
 app.use(express.json());
 
-const clientes = [];
-const agendamentos = [];
 
 app.get('/clientes', (req, res) => {
-    // res.status(200).send(clientes)
     const sql = "SELECT * FROM clientes;"
     conexao.query(sql, (erro, resultado) => {
         if (erro) {
@@ -23,16 +20,14 @@ app.get('/clientes', (req, res) => {
 })
 
 app.post('/clientes', (req, res) => {
-    const {nome, nomepet, endereco, cpf, telefone} = req.body;
-    const novoCliente = {nome, nomepet, endereco, cpf, telefone};
-    // clientes.push(novoCliente);
-    // res.status(201).json({message: 'Cliente adicionado com sucesso', cliente: novoCliente});
+    const cliente = req.body
     const sql = "INSERT INTO clientes SET ?;"
-    conexao.query(sql, novoCliente, (erro, resultado) => {
+    conexao.query(sql, cliente, (erro, resultado) => {
         if (erro) {
-            console.log(erro)
+            res.status(400).json({ 'erro': erro })
         }else {
-            res.status(201).json(resultado)
+            // res.status(201).json(resultado)
+            res.status(201).json({ "message": `Cliente ${cliente.nome} cadastrado com sucesso!`, "cliente": cliente })
         }
     })
 });
@@ -48,19 +43,24 @@ app.get('/agendamentos', (req, res) => {
     })
 })
 
-app.post('/agendamentos', (req, res) => {
-    const {clienteId, data} = req.body;
-    const cliente = clientes.find(c => c.id == clienteId);
-
-    if(!cliente){
-        return res.status(404).json({message: 'Cliente não encontrado'});
-    }
-
-    const novoAgendamento = {clienteId, data: moment(data).locale("pt-br").format("L")};
-    agendamentos.push(novoAgendamento);
-    res.status(201).json({message: 'Agendamento marcado com sucesso', agendamento: novoAgendamento});
+app.post('/agendamentos', (req, res) => {const agendamento = req.body
+    agendamento.data = moment(agendamento.data).locale("pt-br").format("L")
+    const sql = "SELECT * FROM clientes WHERE id = ?;"
+    conexao.query(sql, agendamento.id_cliente, (erro, resultado) => {
+        if (erro) {
+            res.status(400).json({ 'erro': erro })
+        }else {
+            const sqlCommand = "INSERT INTO agendamentos SET ?;"
+            conexao.query(sqlCommand, agendamento, (erro, resultado) => {
+                if (erro) {
+                    res.status(400).json({ "erro": erro })
+                }else {
+                    res.status(201).json({ "message": "agendamento cadastrado com sucesso!", "agendamento": agendamento })
+                }
+            })
+        }
+    })
 });
-
 
 
 // Fazer a conexão
