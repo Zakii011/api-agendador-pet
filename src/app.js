@@ -26,7 +26,6 @@ app.post('/clientes', (req, res) => {
         if (erro) {
             res.status(400).json({ 'erro': erro })
         }else {
-            // res.status(201).json(resultado)
             res.status(201).json({ "message": `Cliente ${cliente.nome} cadastrado com sucesso!`, "cliente": cliente })
         }
     })
@@ -43,25 +42,18 @@ app.get('/agendamentos', (req, res) => {
     })
 })
 
-app.post('/agendamentos', (req, res) => {const agendamento = req.body
+app.post('/agendamentos', (req, res) => {
+    const agendamento = req.body
     agendamento.data = moment(agendamento.data).locale("pt-br").format("L")
-    const sql = "SELECT * FROM clientes WHERE id = ?;"
-    conexao.query(sql, agendamento.id_cliente, (erro, resultado) => {
+    const sql = "INSERT INTO agendamentos SET ?;"
+    conexao.query(sql, agendamento, (erro, resultado) => {
         if (erro) {
-            res.status(400).json({ 'erro': erro })
+            res.status(400).json({ "erro": erro })
         }else {
-            const sqlCommand = "INSERT INTO agendamentos SET ?;"
-            conexao.query(sqlCommand, agendamento, (erro, resultado) => {
-                if (erro) {
-                    res.status(400).json({ "erro": erro })
-                }else {
-                    res.status(201).json({ "message": "agendamento cadastrado com sucesso!", "agendamento": agendamento })
-                }
-            })
+            res.status(201).json({ "message": "Agendamento cadastrado com sucesso!", "agendamento": agendamento})
         }
     })
 });
-
 
 // Fazer a conexão
 conexao.connect((erro) => {
