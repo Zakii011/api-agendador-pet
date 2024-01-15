@@ -44,13 +44,24 @@ app.get('/agendamentos', (req, res) => {
 
 app.post('/agendamentos', (req, res) => {
     const agendamento = req.body
+    const where_cpf = "SELECT * FROM clientes WHERE cpf = ?;"
     agendamento.data = moment(agendamento.data).locale("pt-br").format("L")
-    const sql = "INSERT INTO agendamentos SET ?;"
-    conexao.query(sql, agendamento, (erro, resultado) => {
+
+    conexao.query(where_cpf, agendamento.cpf_cliente, (erro, resultado_cliente) => {
         if (erro) {
             res.status(400).json({ "erro": erro })
-        }else {
-            res.status(201).json({ "message": "Agendamento cadastrado com sucesso!", "agendamento": agendamento})
+        }else if (resultado_cliente.length > 0) {
+            const sql_command = "INSERT INTO agendamentos (id_cliente, nome_cliente, data) VALUES (?, ?, ?);"
+            conexao.query(sql_command, [resultado_cliente[0]['id'], resultado_cliente[0]['nome'], agendamento.data], (erro, resultado) => {
+                if (erro) {
+                    res.status(400).json({ "erro": erro })
+                }else {
+                    res.status(201).json({ "message": "Agendamento cadastrado com sucesso!", "agendamento": agendamento, "cliente": resultado_cliente[0]})
+                }
+            })
+        }
+        else {
+            res.status(201).json({ "resultado": "Cliente inválido" })
         }
     })
 });
